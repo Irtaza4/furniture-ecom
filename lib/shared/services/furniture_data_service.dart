@@ -81,9 +81,9 @@ class FurnitureDataService {
       description:
           'Sculptural curved armchair designed for deep ergonomic comfort. Crafted with premium heather woven fabric, high-resilience foam core, and tapered solid oak legs with protective floor glides.',
       images: [
-        'assets/images/armchair_grey.jpg',
-        'assets/images/leather_swivel_chair.jpg',
-        'assets/images/nordic_stool.jpg',
+        'assets/images/armchair_grey.png',
+        'assets/images/leather_swivel_chair.png',
+        'assets/images/nordic_stool.png',
       ],
       colors: [colorGrey, colorCharcoal, colorCyan, colorPink],
       materials: [materialBoucle, materialLeather, materialOak],
@@ -103,9 +103,9 @@ class FurnitureDataService {
       description:
           'Iconic butterfly-wing silhouette crafted with supple saddle leather and refined matte black steel legs. Engineered with 360-degree silent swivel mechanism for versatile dining and studio environments.',
       images: [
-        'assets/images/leather_swivel_chair.jpg',
-        'assets/images/armchair_grey.jpg',
-        'assets/images/welcome_sofa.jpg',
+        'assets/images/leather_swivel_chair.png',
+        'assets/images/armchair_grey.png',
+        'assets/images/velvet_sofa.png',
       ],
       colors: [colorPink, colorCyan, colorMustard, colorCharcoal],
       materials: [materialLeather, materialBoucle, materialOak],
@@ -125,8 +125,8 @@ class FurnitureDataService {
       description:
           'Minimalist Japanese-Nordic tripod accent table. Solid natural white ash wood with beveled bullnose edges, smooth satin natural lacquer finish, and quick twist-assembly legs.',
       images: [
-        'assets/images/stool_table.jpg',
-        'assets/images/nordic_stool.jpg',
+        'assets/images/stool_table.png',
+        'assets/images/nordic_stool.png',
       ],
       colors: [colorMint, colorMustard, colorCharcoal],
       materials: [materialOak, materialLeather],
@@ -145,7 +145,7 @@ class FurnitureDataService {
       description:
           'Architectural cone pendant fixture with natural terracotta ceramic exterior and spun copper warm reflective interior. Emits a soft, downward focused glow ideal for dining tables and reading nooks.',
       images: [
-        'assets/images/ceiling_lamp.jpg',
+        'assets/images/ceiling_lamp.png',
       ],
       colors: [colorMustard, colorCharcoal, colorCyan],
       materials: [materialOak, materialLeather],
@@ -164,8 +164,8 @@ class FurnitureDataService {
       description:
           'Multi-functional companion stool and nightstand. Features a plush lavender upholstered seat top resting on turned solid beech wood legs.',
       images: [
-        'assets/images/nordic_stool.jpg',
-        'assets/images/stool_table.jpg',
+        'assets/images/nordic_stool.png',
+        'assets/images/stool_table.png',
       ],
       colors: [colorPink, colorCyan, colorGrey],
       materials: [materialBoucle, materialLeather, materialOak],
@@ -184,8 +184,8 @@ class FurnitureDataService {
       description:
           'Organic sculptural 3-seater sofa wrapped in textured ivory bouclé. Gently curved backrest creates an intimate lounging experience with feather-down filled lumbar support.',
       images: [
-        'assets/images/velvet_sofa.jpg',
-        'assets/images/welcome_sofa.jpg',
+        'assets/images/velvet_sofa.png',
+        'assets/images/armchair_grey.png',
       ],
       colors: [colorGrey, colorCharcoal, colorPink],
       materials: [materialBoucle, materialLeather],
@@ -204,7 +204,7 @@ class FurnitureDataService {
       description:
           'Low-profile floating platform bed crafted from solid white oak timber. Rounded outer corners ensure shin protection while integrated slat ventilation prolongs mattress life.',
       images: [
-        'assets/images/bed_frame.jpg',
+        'assets/images/bed_frame.png',
       ],
       colors: [colorMustard, colorCharcoal, colorGrey],
       materials: [materialOak, materialLeather],
@@ -223,7 +223,7 @@ class FurnitureDataService {
       description:
           'Handmade organic ceramic vases with raw matte stoneware finish and sculptural fluid contouring. Set of two complimentary shapes for dry florals or standalone display.',
       images: [
-        'assets/images/vase_set.jpg',
+        'assets/images/vase_set.png',
       ],
       colors: [colorMustard, colorPink, colorCharcoal],
       materials: [materialOak],
@@ -238,7 +238,7 @@ class FurnitureDataService {
       id: 'cat_all',
       name: 'All',
       icon: Icons.grid_view_rounded,
-      image: 'assets/images/armchair_grey.jpg',
+      image: 'assets/images/armchair_grey.png',
       itemCount: 24,
       backgroundColor: AppColors.primaryDark,
     ),
@@ -246,7 +246,7 @@ class FurnitureDataService {
       id: 'cat_sofa',
       name: 'Sofa',
       icon: Icons.weekend_outlined,
-      image: 'assets/images/velvet_sofa.jpg',
+      image: 'assets/images/velvet_sofa.png',
       itemCount: 8,
       backgroundColor: AppColors.cardCream,
     ),
@@ -254,7 +254,7 @@ class FurnitureDataService {
       id: 'cat_chair',
       name: 'Chair',
       icon: Icons.chair_outlined,
-      image: 'assets/images/leather_swivel_chair.jpg',
+      image: 'assets/images/leather_swivel_chair.png',
       itemCount: 12,
       backgroundColor: AppColors.cardLavender,
     ),
@@ -262,7 +262,7 @@ class FurnitureDataService {
       id: 'cat_table',
       name: 'Table',
       icon: Icons.table_restaurant_outlined,
-      image: 'assets/images/stool_table.jpg',
+      image: 'assets/images/stool_table.png',
       itemCount: 6,
       backgroundColor: AppColors.cardMint,
     ),
@@ -270,7 +270,7 @@ class FurnitureDataService {
       id: 'cat_lighting',
       name: 'Lighting',
       icon: Icons.lightbulb_outline_rounded,
-      image: 'assets/images/ceiling_lamp.jpg',
+      image: 'assets/images/ceiling_lamp.png',
       itemCount: 9,
       backgroundColor: AppColors.cardPeach,
     ),
@@ -278,7 +278,7 @@ class FurnitureDataService {
       id: 'cat_bed',
       name: 'Bed',
       icon: Icons.bed_outlined,
-      image: 'assets/images/bed_frame.jpg',
+      image: 'assets/images/bed_frame.png',
       itemCount: 5,
       backgroundColor: AppColors.cardIce,
     ),
@@ -286,7 +286,7 @@ class FurnitureDataService {
       id: 'cat_decor',
       name: 'Decoration',
       icon: Icons.yard_outlined,
-      image: 'assets/images/vase_set.jpg',
+      image: 'assets/images/vase_set.png',
       itemCount: 14,
       backgroundColor: AppColors.cardWarmGray,
     ),
