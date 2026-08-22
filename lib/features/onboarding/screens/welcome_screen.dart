@@ -19,7 +19,7 @@ class WelcomeScreen extends StatelessWidget {
             child: child,
           );
         },
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: const Duration(milliseconds: 250),
       ),
     );
   }

@@ -19,13 +19,47 @@ class MainNavigationShell extends StatefulWidget {
   State<MainNavigationShell> createState() => _MainNavigationShellState();
 }
 
-class _MainNavigationShellState extends State<MainNavigationShell> {
+class _MainNavigationShellState extends State<MainNavigationShell> with SingleTickerProviderStateMixin {
   late int _currentIndex;
+  late AnimationController _navAnimationController;
+  late Animation<Offset> _navSlideAnimation;
+  late Animation<double> _navFadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+
+    _navAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    // Floating Nav slides up from below (0.55 -> 1.0)
+    _navSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1.6),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _navAnimationController,
+        curve: const Interval(0.55, 1.0, curve: Curves.easeOutBack),
+      ),
+    );
+
+    _navFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _navAnimationController,
+        curve: const Interval(0.55, 0.90, curve: Curves.easeOut),
+      ),
+    );
+
+    _navAnimationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _navAnimationController.dispose();
+    super.dispose();
   }
 
   void _onTabSelected(int index) {
@@ -54,14 +88,20 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             children: screens,
           ),
 
-          // Floating Bottom Navigation Bar
+          // Animated Floating Bottom Navigation Bar
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
-            child: BottomNavBar(
-              currentIndex: _currentIndex,
-              onTabSelected: _onTabSelected,
+            child: SlideTransition(
+              position: _navSlideAnimation,
+              child: FadeTransition(
+                opacity: _navFadeAnimation,
+                child: BottomNavBar(
+                  currentIndex: _currentIndex,
+                  onTabSelected: _onTabSelected,
+                ),
+              ),
             ),
           ),
         ],
