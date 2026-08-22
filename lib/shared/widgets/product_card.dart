@@ -60,6 +60,12 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
     if (widget.heroTag != null && widget.heroTag!.isNotEmpty) {
       return Hero(
         tag: widget.heroTag!,
+        flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
+          return Material(
+            type: MaterialType.transparency,
+            child: toHeroContext.widget,
+          );
+        },
         child: imageWidget,
       );
     }
@@ -139,8 +145,8 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryDark.withValues(alpha: 0.06),
-                          blurRadius: 8,
+                          color: AppColors.primaryDark.withValues(alpha: 0.08),
+                          blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -148,7 +154,7 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
                     child: Icon(
                       isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                       color: isFav ? AppColors.accentCoral : AppColors.primaryDark,
-                      size: 18,
+                      size: 16,
                     ),
                   ),
                 ),

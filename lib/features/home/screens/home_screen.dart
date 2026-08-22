@@ -136,17 +136,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.05),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-              child: child,
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: const Interval(0.0, 0.40, curve: Curves.easeOut),
             ),
+            child: child,
           );
         },
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 380),
       ),
     );
   }
@@ -457,7 +454,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           opacity: cardFade,
                           child: ProductCard(
                             product: product,
-                            onTap: () => _openProductDetail(product),
+                            heroTag: 'home_grid_${product.id}',
+                            onTap: () => _openProductDetail(product, heroTag: 'home_grid_${product.id}'),
                           ),
                         ),
                       ),

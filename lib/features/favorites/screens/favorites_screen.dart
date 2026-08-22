@@ -176,10 +176,24 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
                               opacity: cardFade,
                               child: ProductCard(
                                 product: product,
+                                heroTag: 'fav_grid_${product.id}',
                                 onTap: () {
                                   Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => ProductDetailScreen(product: product),
+                                    PageRouteBuilder(
+                                      pageBuilder: (context, animation, secondaryAnimation) => ProductDetailScreen(
+                                        product: product,
+                                        heroTag: 'fav_grid_${product.id}',
+                                      ),
+                                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                        return FadeTransition(
+                                          opacity: CurvedAnimation(
+                                            parent: animation,
+                                            curve: const Interval(0.0, 0.40, curve: Curves.easeOut),
+                                          ),
+                                          child: child,
+                                        );
+                                      },
+                                      transitionDuration: const Duration(milliseconds: 380),
                                     ),
                                   );
                                 },

@@ -147,6 +147,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (index == 0 && widget.heroTag != null && widget.heroTag!.isNotEmpty) {
       return Hero(
         tag: widget.heroTag!,
+        flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
+          return Material(
+            type: MaterialType.transparency,
+            child: toHeroContext.widget,
+          );
+        },
         child: img,
       );
     }

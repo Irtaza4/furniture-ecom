@@ -107,9 +107,24 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     }).toList();
   }
 
-  void _openProductDetail(Product product) {
+  void _openProductDetail(Product product, {String? heroTag}) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => ProductDetailScreen(
+          product: product,
+          heroTag: heroTag,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: const Interval(0.0, 0.40, curve: Curves.easeOut),
+            ),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 380),
+      ),
     );
   }
 
@@ -402,7 +417,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                               opacity: cardFade,
                               child: ProductCard(
                                 product: product,
-                                onTap: () => _openProductDetail(product),
+                                heroTag: 'search_grid_${product.id}',
+                                onTap: () => _openProductDetail(product, heroTag: 'search_grid_${product.id}'),
                               ),
                             ),
                           ),
