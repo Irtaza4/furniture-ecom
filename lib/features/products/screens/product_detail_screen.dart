@@ -14,10 +14,12 @@ import '../../../shared/widgets/app_button.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
+  final String? heroTag;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
+    this.heroTag,
   });
 
   @override
@@ -179,20 +181,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 return Center(
                                   child: Padding(
                                     padding: const EdgeInsets.all(24.0),
-                                    child: Hero(
-                                      tag: index == 0
-                                          ? 'product_image_${widget.product.id}'
-                                          : 'product_img_${widget.product.id}_$index',
-                                      child: Image.asset(
-                                        widget.product.images[index],
-                                        fit: BoxFit.contain,
-                                        errorBuilder: (context, error, stackTrace) => const Icon(
-                                          Icons.chair_rounded,
-                                          size: 120,
-                                          color: AppColors.primaryDark,
-                                        ),
-                                      ),
-                                    ),
+                                    child: index == 0 && widget.heroTag != null && widget.heroTag!.isNotEmpty
+                                        ? Hero(
+                                            tag: widget.heroTag!,
+                                            child: Image.asset(
+                                              widget.product.images[index],
+                                              fit: BoxFit.contain,
+                                              errorBuilder: (context, error, stackTrace) => const Icon(
+                                                Icons.chair_rounded,
+                                                size: 120,
+                                                color: AppColors.primaryDark,
+                                              ),
+                                            ),
+                                          )
+                                        : Image.asset(
+                                            widget.product.images[index],
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (context, error, stackTrace) => const Icon(
+                                              Icons.chair_rounded,
+                                              size: 120,
+                                              color: AppColors.primaryDark,
+                                            ),
+                                          ),
                                   ),
                                 );
                               },

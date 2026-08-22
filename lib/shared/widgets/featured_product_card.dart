@@ -9,12 +9,38 @@ import '../../core/constants/app_spacing.dart';
 class FeaturedProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
+  final String? heroTag;
 
   const FeaturedProductCard({
     super.key,
     required this.product,
     required this.onTap,
+    this.heroTag,
   });
+
+  Widget _buildImage() {
+    final imageWidget = Container(
+      height: 190,
+      constraints: const BoxConstraints(maxHeight: 220),
+      child: Image.asset(
+        product.mainImage,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.chair_rounded,
+          size: 100,
+          color: AppColors.primaryDark,
+        ),
+      ),
+    );
+
+    if (heroTag != null && heroTag!.isNotEmpty) {
+      return Hero(
+        tag: heroTag!,
+        child: imageWidget,
+      );
+    }
+    return imageWidget;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,22 +79,7 @@ class FeaturedProductCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   // Large Product Image
                   Center(
-                    child: Hero(
-                      tag: 'product_image_${product.id}',
-                      child: Container(
-                        height: 190,
-                        constraints: const BoxConstraints(maxHeight: 220),
-                        child: Image.asset(
-                          product.mainImage,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Icons.chair_rounded,
-                            size: 100,
-                            color: AppColors.primaryDark,
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: _buildImage(),
                   ),
                   const SizedBox(height: 16),
                   // Bottom Row with Price Pill & Favorite Button
