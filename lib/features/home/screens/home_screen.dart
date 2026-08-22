@@ -9,7 +9,6 @@ import '../../../shared/services/cart_provider.dart';
 import '../../../shared/widgets/featured_product_card.dart';
 import '../../../shared/widgets/product_card.dart';
 import '../../../shared/widgets/search_field_custom.dart';
-import '../../../shared/widgets/icon_button_custom.dart';
 import '../../products/screens/product_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -29,9 +28,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   final TextEditingController _searchController = TextEditingController();
   late AnimationController _entranceController;
 
-  late Animation<double> _headerFade;
-  late Animation<Offset> _headerSlide;
-
   late Animation<double> _heroFade;
   late Animation<double> _heroScale;
   late Animation<Offset> _heroSlide;
@@ -48,68 +44,54 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     super.initState();
     _entranceController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 1400),
     );
 
-    // 1. Header (0.05 -> 0.35)
-    _headerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: const Interval(0.05, 0.35, curve: Curves.easeOut),
-      ),
-    );
-    _headerSlide = Tween<Offset>(begin: const Offset(0, -0.5), end: Offset.zero).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: const Interval(0.05, 0.35, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    // 2. Hero Card (0.15 -> 0.55)
+    // 1. Hero Card Entrance at Top (0.05 -> 0.45)
     _heroFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _entranceController,
-        curve: const Interval(0.15, 0.48, curve: Curves.easeOut),
+        curve: const Interval(0.05, 0.40, curve: Curves.easeOut),
       ),
     );
-    _heroScale = Tween<double>(begin: 0.88, end: 1.0).animate(
+    _heroScale = Tween<double>(begin: 0.90, end: 1.0).animate(
       CurvedAnimation(
         parent: _entranceController,
-        curve: const Interval(0.15, 0.55, curve: Curves.easeOutBack),
+        curve: const Interval(0.05, 0.45, curve: Curves.easeOutBack),
       ),
     );
-    _heroSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+    _heroSlide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
       CurvedAnimation(
         parent: _entranceController,
-        curve: const Interval(0.15, 0.55, curve: Curves.easeOutCubic),
+        curve: const Interval(0.05, 0.45, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 3. Search Bar Dynamic Expansion (0.30 -> 0.70)
+    // 2. Search Bar Dynamic Expansion (0.25 -> 0.65)
     _searchAnimation = CurvedAnimation(
       parent: _entranceController,
-      curve: const Interval(0.30, 0.70, curve: Curves.easeOutCubic),
+      curve: const Interval(0.25, 0.65, curve: Curves.easeOutCubic),
     );
 
-    // 4. Categories Carousel (0.42 -> 0.78)
+    // 3. Categories Carousel (0.35 -> 0.72)
     _categoriesFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _entranceController,
-        curve: const Interval(0.42, 0.75, curve: Curves.easeOut),
+        curve: const Interval(0.35, 0.70, curve: Curves.easeOut),
       ),
     );
-    _categoriesSlide = Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero).animate(
+    _categoriesSlide = Tween<Offset>(begin: const Offset(0.25, 0), end: Offset.zero).animate(
       CurvedAnimation(
         parent: _entranceController,
-        curve: const Interval(0.42, 0.78, curve: Curves.easeOutCubic),
+        curve: const Interval(0.35, 0.72, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 5. Section Header (0.50 -> 0.80)
+    // 4. Section Header (0.45 -> 0.78)
     _sectionHeaderFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _entranceController,
-        curve: const Interval(0.50, 0.80, curve: Curves.easeOut),
+        curve: const Interval(0.45, 0.78, curve: Curves.easeOut),
       ),
     );
 
@@ -285,74 +267,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
+        top: false,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 100),
+          padding: const EdgeInsets.only(top: 4, bottom: 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
-
-              // 1. Top Bar: Animated Slide and Fade from Top
-              SlideTransition(
-                position: _headerSlide,
-                child: FadeTransition(
-                  opacity: _headerFade,
-                  child: Padding(
-                    padding: AppSpacing.screenPadding,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Location',
-                              style: AppTypography.label.copyWith(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.location_on_rounded,
-                                  size: 15,
-                                  color: AppColors.accentPurple,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'San Francisco, CA',
-                                  style: AppTypography.bodyMedium.copyWith(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  size: 18,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        // Shopping Bag Button
-                        IconButtonCustom(
-                          icon: Icons.shopping_bag_outlined,
-                          badge: cartCount > 0 ? '$cartCount' : null,
-                          onPressed: () => widget.onNavigateTab?.call(2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // 2. Hero Featured Card: Pop & Scale from Bottom
+              SizedBox(height: 50,),
+              // 1. Hero Featured Card positioned directly at the top
               SlideTransition(
                 position: _heroSlide,
                 child: ScaleTransition(
@@ -364,6 +287,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       child: FeaturedProductCard(
                         product: heroProduct,
                         heroTag: 'home_hero_${heroProduct.id}',
+                        cartCount: cartCount,
+                        onCartTap: () => widget.onNavigateTab?.call(2),
                         onTap: () => _openProductDetail(heroProduct, heroTag: 'home_hero_${heroProduct.id}'),
                       ),
                     ),
@@ -373,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
               const SizedBox(height: 16),
 
-              // 3. Dark Search Bar: Expands from Left with Search Icon & Mint Filter Button
+              // 2. Dark Search Bar: Expands from Left with Search Icon & Mint Filter Button
               Padding(
                 padding: AppSpacing.screenPadding,
                 child: SearchFieldCustom(
@@ -387,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
               const SizedBox(height: 20),
 
-              // 4. Category Pills: Sliding in horizontally with fade
+              // 3. Category Pills: Sliding in horizontally with fade
               SlideTransition(
                 position: _categoriesSlide,
                 child: FadeTransition(
@@ -452,7 +377,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
               const SizedBox(height: 20),
 
-              // 5. Section Heading: Fade in
+              // 4. Section Heading: Fade in
               FadeTransition(
                 opacity: _sectionHeaderFade,
                 child: Padding(
@@ -480,7 +405,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
               const SizedBox(height: 14),
 
-              // 6. Staggered Animated 2-Column Product Grid
+              // 5. Staggered Animated 2-Column Product Grid
               Padding(
                 padding: AppSpacing.screenPadding,
                 child: GridView.builder(

@@ -10,18 +10,22 @@ class FeaturedProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
   final String? heroTag;
+  final VoidCallback? onCartTap;
+  final int cartCount;
 
   const FeaturedProductCard({
     super.key,
     required this.product,
     required this.onTap,
     this.heroTag,
+    this.onCartTap,
+    this.cartCount = 0,
   });
 
   Widget _buildImage() {
     final imageWidget = Container(
-      height: 190,
-      constraints: const BoxConstraints(maxHeight: 220),
+      height: 200,
+      constraints: const BoxConstraints(maxHeight: 230),
       child: Image.asset(
         product.mainImage,
         fit: BoxFit.contain,
@@ -57,38 +61,113 @@ class FeaturedProductCard extends StatelessWidget {
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
+              padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Find the best\nFurniture! 🛋️',
-                    style: AppTypography.heroHeading.copyWith(
-                      fontSize: 28,
-                      height: 1.15,
-                    ),
+                  // Top Row: Headline + Subtitle on Left, White Squircle Cart on Right
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Find the best\nFurniture! 🛋️',
+                              style: AppTypography.heroHeading.copyWith(
+                                fontSize: 27,
+                                fontWeight: FontWeight.w800,
+                                height: 1.15,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              product.subtitle,
+                              style: AppTypography.body.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // White Squircle Cart Button
+                      GestureDetector(
+                        onTap: onCartTap,
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryDark.withValues(alpha: 0.08),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(
+                                Icons.shopping_cart_outlined,
+                                color: AppColors.primaryDark,
+                                size: 22,
+                              ),
+                              if (cartCount > 0)
+                                Positioned(
+                                  top: -4,
+                                  right: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.accentCoral,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 18,
+                                      minHeight: 18,
+                                    ),
+                                    child: Text(
+                                      '$cartCount',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        height: 1,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    product.subtitle,
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   // Large Product Image
                   Center(
                     child: _buildImage(),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   // Bottom Row with Price Pill & Favorite Button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Price Badge Pill
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
                         decoration: BoxDecoration(
                           color: AppColors.primaryDark,
                           borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
@@ -105,10 +184,10 @@ class FeaturedProductCard extends StatelessWidget {
                       GestureDetector(
                         onTap: () => favorites.toggleFavorite(product.id),
                         child: Container(
-                          width: 46,
-                          height: 46,
+                          width: 50,
+                          height: 50,
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: Colors.white,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
