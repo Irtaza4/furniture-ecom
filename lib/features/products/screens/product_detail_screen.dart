@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
@@ -144,19 +145,37 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
     );
 
-    if (index == 0 && widget.heroTag != null && widget.heroTag!.isNotEmpty) {
-      return Hero(
-        tag: widget.heroTag!,
-        flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
-          return Material(
-            type: MaterialType.transparency,
-            child: toHeroContext.widget,
-          );
-        },
-        child: img,
-      );
-    }
-    return img;
+    final heroChild = (index == 0 && widget.heroTag != null && widget.heroTag!.isNotEmpty)
+        ? Hero(
+            tag: widget.heroTag!,
+            flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
+              return Material(
+                type: MaterialType.transparency,
+                child: toHeroContext.widget,
+              );
+            },
+            child: img,
+          )
+        : img;
+
+    return LongPressDraggable<Product>(
+      data: widget.product,
+      delay: const Duration(milliseconds: 140),
+      hapticFeedbackOnStart: true,
+      feedback: Material(
+        type: MaterialType.transparency,
+        child: SizedBox(
+          width: 250,
+          height: 250,
+          child: Image.asset(
+            imageAsset,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+      childWhenDragging: heroChild,
+      child: heroChild,
+    );
   }
 
   Widget _buildCardStepper() {
@@ -309,7 +328,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         bottom: false,
         child: Column(
           children: [
-            // Top Navigation Bar
+            // Top Navigation Bar (with DragTarget Cart Icon)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Row(
@@ -340,11 +359,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ],
                     ),
                   ),
-                  IconButtonCustom(
-                    icon: Icons.shopping_bag_outlined,
-                    badge: cartCount > 0 ? '$cartCount' : null,
-                    onPressed: () {
-                      Navigator.of(context).pop();
+                  DragTarget<Product>(
+                    onWillAcceptWithDetails: (details) {
+                      HapticFeedback.selectionClick();
+                      return true;
+                    },
+                    onAcceptWithDetails: (details) {
+                      HapticFeedback.heavyImpact();
+                      _handleAddToCart();
+                    },
+                    builder: (context, candidateData, rejectedData) {
+                      final isHovered = candidateData.isNotEmpty;
+                      return AnimatedScale(
+                        duration: const Duration(milliseconds: 150),
+                        scale: isHovered ? 1.25 : 1.0,
+                        child: IconButtonCustom(
+                          icon: Icons.shopping_bag_outlined,
+                          variant: isHovered ? CustomIconVariant.mint : CustomIconVariant.whiteSurface,
+                          badge: cartCount > 0 ? '$cartCount' : null,
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      );
                     },
                   ),
                 ],
@@ -405,7 +442,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     ),
                                     child: Stack(
                                       children: [
-                                        // Centered Product Cutout for the exact selected color & angle
+                                        // Centered Product Cutout with Hold & Drag
                                         Center(
                                           child: Padding(
                                             padding: const EdgeInsets.fromLTRB(20, 20, 20, 70),
@@ -503,7 +540,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Material Selection Row with Favorite Button
+                          // Material Selection Row with DragTarget Favorite Button
                           MaterialSelector(
                             materials: widget.product.materials,
                             selectedMaterial: _selectedMaterial,
@@ -512,28 +549,57 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 _selectedMaterial = material;
                               });
                             },
-                            trailingAction: GestureDetector(
-                              onTap: () => favorites.toggleFavorite(widget.product.id),
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.1),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
+                            trailingAction: DragTarget<Product>(
+                              onWillAcceptWithDetails: (details) {
+                                HapticFeedback.selectionClick();
+                                return true;
+                              },
+                              onAcceptWithDetails: (details) {
+                                HapticFeedback.heavyImpact();
+                                favorites.toggleFavorite(details.data.id);
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: AppColors.primaryDark,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    content: Text('Dropped & added ${details.data.name} to Wishlist! ❤️'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              builder: (context, candidateData, rejectedData) {
+                                final isHovered = candidateData.isNotEmpty;
+                                return GestureDetector(
+                                  onTap: () => favorites.toggleFavorite(widget.product.id),
+                                  child: AnimatedScale(
+                                    duration: const Duration(milliseconds: 150),
+                                    scale: isHovered ? 1.30 : 1.0,
+                                    child: Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        color: isHovered
+                                            ? AppColors.accentCoral.withValues(alpha: 0.3)
+                                            : AppColors.surface,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.1),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        isFav || isHovered ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                        color: isFav || isHovered ? AppColors.accentCoral : AppColors.primaryDark,
+                                        size: 22,
+                                      ),
                                     ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                                  color: isFav ? AppColors.accentCoral : AppColors.primaryDark,
-                                  size: 22,
-                                ),
-                              ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
 

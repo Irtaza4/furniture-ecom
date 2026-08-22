@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../services/favorites_provider.dart';
@@ -57,19 +58,38 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
       ),
     );
 
-    if (widget.heroTag != null && widget.heroTag!.isNotEmpty) {
-      return Hero(
-        tag: widget.heroTag!,
-        flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
-          return Material(
-            type: MaterialType.transparency,
-            child: toHeroContext.widget,
-          );
-        },
-        child: imageWidget,
-      );
-    }
-    return imageWidget;
+    final heroChild = widget.heroTag != null && widget.heroTag!.isNotEmpty
+        ? Hero(
+            tag: widget.heroTag!,
+            flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
+              return Material(
+                type: MaterialType.transparency,
+                child: toHeroContext.widget,
+              );
+            },
+            child: imageWidget,
+          )
+        : imageWidget;
+
+    // Hold/Drag the product cutout itself
+    return LongPressDraggable<Product>(
+      data: widget.product,
+      delay: const Duration(milliseconds: 140),
+      hapticFeedbackOnStart: true,
+      feedback: Material(
+        type: MaterialType.transparency,
+        child: SizedBox(
+          width: 125,
+          height: 125,
+          child: Image.asset(
+            widget.product.mainImage,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+      childWhenDragging: heroChild,
+      child: heroChild,
+    );
   }
 
   @override
@@ -100,7 +120,7 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 12),
-                    // Product Image
+                    // Product Image (Draggable)
                     Expanded(
                       child: Center(
                         child: _buildImage(),
@@ -131,32 +151,61 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
                   ],
                 ),
               ),
-              // Favorite Heart Button (Top Right)
+              // Favorite Heart Button (Top Right with DragTarget support)
               Positioned(
                 top: 10,
                 right: 10,
-                child: GestureDetector(
-                  onTap: () => favorites.toggleFavorite(widget.product.id),
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryDark.withValues(alpha: 0.08),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+                child: DragTarget<Product>(
+                  onWillAcceptWithDetails: (details) {
+                    HapticFeedback.selectionClick();
+                    return true;
+                  },
+                  onAcceptWithDetails: (details) {
+                    HapticFeedback.heavyImpact();
+                    favorites.toggleFavorite(details.data.id);
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: AppColors.primaryDark,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        content: Text('Added ${details.data.name} to Wishlist! ❤️'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  builder: (context, candidateData, rejectedData) {
+                    final isHovered = candidateData.isNotEmpty;
+                    return GestureDetector(
+                      onTap: () => favorites.toggleFavorite(widget.product.id),
+                      child: AnimatedScale(
+                        duration: const Duration(milliseconds: 150),
+                        scale: isHovered ? 1.35 : 1.0,
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: isHovered
+                                ? AppColors.accentCoral.withValues(alpha: 0.3)
+                                : AppColors.surface.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryDark.withValues(alpha: 0.08),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                            color: isFav || isHovered ? AppColors.accentCoral : AppColors.primaryDark,
+                            size: 16,
+                          ),
                         ),
-                      ],
-                    ),
-                    child: Icon(
-                      isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                      color: isFav ? AppColors.accentCoral : AppColors.primaryDark,
-                      size: 16,
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

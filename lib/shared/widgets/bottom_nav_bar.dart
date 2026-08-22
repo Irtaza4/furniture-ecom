@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../models/product.dart';
 import '../services/cart_provider.dart';
+import '../services/favorites_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
 
@@ -25,7 +27,7 @@ class _BottomNavBarState extends State<BottomNavBar> with SingleTickerProviderSt
 
   void _handleTouchMove(Offset localPosition, double totalWidth, int itemCount) {
     if (totalWidth <= 0) return;
-    final paddingHorizontal = 10.0;
+    const paddingHorizontal = 10.0;
     final usableWidth = totalWidth - (paddingHorizontal * 2);
     final relativeX = (localPosition.dx - paddingHorizontal).clamp(0.0, usableWidth);
     final tabWidth = usableWidth / itemCount;
@@ -49,6 +51,80 @@ class _BottomNavBarState extends State<BottomNavBar> with SingleTickerProviderSt
       _isHolding = false;
       _previewIndex = null;
     });
+  }
+
+  void _handleDropOnCart(Product product) {
+    HapticFeedback.heavyImpact();
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    cart.addItem(
+      product: product,
+      color: product.colors.first,
+      material: product.materials.first,
+    );
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.primaryDark,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: AppColors.accentMint,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.shopping_bag_rounded, size: 16, color: AppColors.primaryDark),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Dropped & added ${product.name} to Cart! 🛍️',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleDropOnFavorites(Product product) {
+    HapticFeedback.heavyImpact();
+    final favs = Provider.of<FavoritesProvider>(context, listen: false);
+    favs.toggleFavorite(product.id);
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.primaryDark,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: AppColors.accentCoral,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.favorite_rounded, size: 16, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Dropped & added ${product.name} to Wishlist! ❤️',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -143,7 +219,7 @@ class _BottomNavBarState extends State<BottomNavBar> with SingleTickerProviderSt
                         ),
                       ),
 
-                      // Interactive Tab Icon Items
+                      // Interactive Tab Icon Items (with DragTarget for Cart & Favorites)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: List.generate(navItems.length, (index) {
@@ -151,8 +227,8 @@ class _BottomNavBarState extends State<BottomNavBar> with SingleTickerProviderSt
                           final isSelected = activeIndex == index;
                           final badge = item['badge'] as int?;
 
-                          return Expanded(
-                            child: GestureDetector(
+                          Widget tabContent(bool isHovered) {
+                            return GestureDetector(
                               onTap: () {
                                 HapticFeedback.selectionClick();
                                 widget.onTabSelected(index);
@@ -161,47 +237,98 @@ class _BottomNavBarState extends State<BottomNavBar> with SingleTickerProviderSt
                               child: Center(
                                 child: AnimatedScale(
                                   duration: const Duration(milliseconds: 180),
-                                  scale: isSelected ? 1.15 : 1.0,
+                                  scale: isHovered ? 1.35 : (isSelected ? 1.15 : 1.0),
                                   curve: Curves.easeOutBack,
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      Icon(
-                                        item['icon'] as IconData,
-                                        size: 22,
-                                        color: isSelected ? Colors.white : AppColors.textMuted,
-                                      ),
-                                      if (badge != null && badge > 0)
-                                        Positioned(
-                                          top: -6,
-                                          right: -8,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: AppColors.accentCoral,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            constraints: const BoxConstraints(
-                                              minWidth: 16,
-                                              minHeight: 16,
-                                            ),
-                                            child: Text(
-                                              '$badge',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.bold,
-                                                height: 1,
+                                  child: Container(
+                                    padding: isHovered ? const EdgeInsets.all(6) : EdgeInsets.zero,
+                                    decoration: isHovered
+                                        ? BoxDecoration(
+                                            color: index == 2
+                                                ? AppColors.accentMint.withValues(alpha: 0.3)
+                                                : AppColors.accentCoral.withValues(alpha: 0.3),
+                                            shape: BoxShape.circle,
+                                          )
+                                        : null,
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        Icon(
+                                          item['icon'] as IconData,
+                                          size: 22,
+                                          color: isHovered
+                                              ? (index == 2 ? AppColors.accentMint : AppColors.accentCoral)
+                                              : (isSelected ? Colors.white : AppColors.textMuted),
+                                        ),
+                                        if (badge != null && badge > 0)
+                                          Positioned(
+                                            top: -6,
+                                            right: -8,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: const BoxDecoration(
+                                                color: AppColors.accentCoral,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 16,
+                                                minHeight: 16,
+                                              ),
+                                              child: Text(
+                                                '$badge',
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.bold,
+                                                  height: 1,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            );
+                          }
+
+                          if (index == 2) {
+                            // Cart Tab DragTarget
+                            return Expanded(
+                              child: DragTarget<Product>(
+                                onWillAcceptWithDetails: (details) {
+                                  HapticFeedback.selectionClick();
+                                  return true;
+                                },
+                                onAcceptWithDetails: (details) {
+                                  _handleDropOnCart(details.data);
+                                },
+                                builder: (context, candidateData, rejectedData) {
+                                  return tabContent(candidateData.isNotEmpty);
+                                },
+                              ),
+                            );
+                          } else if (index == 3) {
+                            // Favorites Tab DragTarget
+                            return Expanded(
+                              child: DragTarget<Product>(
+                                onWillAcceptWithDetails: (details) {
+                                  HapticFeedback.selectionClick();
+                                  return true;
+                                },
+                                onAcceptWithDetails: (details) {
+                                  _handleDropOnFavorites(details.data);
+                                },
+                                builder: (context, candidateData, rejectedData) {
+                                  return tabContent(candidateData.isNotEmpty);
+                                },
+                              ),
+                            );
+                          }
+
+                          return Expanded(
+                            child: tabContent(false),
                           );
                         }),
                       ),
