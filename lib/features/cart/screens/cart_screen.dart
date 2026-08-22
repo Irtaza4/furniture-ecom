@@ -554,6 +554,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                       ),
                     ),
                   ),
+                  SizedBox(height: 20,)
                 ],
               ),
       ),
