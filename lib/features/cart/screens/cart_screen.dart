@@ -6,7 +6,6 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../shared/services/cart_provider.dart';
 import '../../../shared/widgets/icon_button_custom.dart';
-import '../../../shared/widgets/quantity_selector.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../checkout/screens/checkout_screen.dart';
 
@@ -23,8 +22,6 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateMixin {
-  final TextEditingController _promoController = TextEditingController();
-
   late AnimationController _animController;
   late Animation<double> _headerFade;
   late Animation<Offset> _headerSlide;
@@ -77,7 +74,6 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
   @override
   void dispose() {
     _animController.dispose();
-    _promoController.dispose();
     super.dispose();
   }
 
@@ -95,6 +91,92 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
           );
         },
       ),
+    );
+  }
+
+  Widget _buildItemStepper(dynamic item, CartProvider cart) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Plus Button (Left)
+        GestureDetector(
+          onTap: () => cart.updateQuantity(item.id, item.quantity + 1),
+          child: Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(Icons.add, size: 14, color: AppColors.primaryDark),
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        // Quantity Badge (Lavender Circle)
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFF948BE5),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF948BE5).withValues(alpha: 0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              '${item.quantity}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        // Minus Button (Right)
+        GestureDetector(
+          onTap: item.quantity > 1
+              ? () => cart.updateQuantity(item.id, item.quantity - 1)
+              : () => cart.removeItem(item.id),
+          child: Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Icon(
+                Icons.remove,
+                size: 14,
+                color: item.quantity > 1 ? AppColors.primaryDark : AppColors.textMuted,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -183,7 +265,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
 
                   const SizedBox(height: 16),
 
-                  // Items List: Cascading Staggered Entrance
+                  // Items List: Swipe-to-Delete Dismissible Cards
                   Expanded(
                     child: ListView.separated(
                       physics: const BouncingScrollPhysics(),
@@ -226,123 +308,118 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                             scale: itemScale,
                             child: FadeTransition(
                               opacity: itemFade,
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(22),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primaryDark.withValues(alpha: 0.04),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
+                              child: Dismissible(
+                                key: ValueKey(item.id),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (direction) {
+                                  final removedItemName = item.product.name;
+                                  cart.removeItem(item.id);
+                                  ScaffoldMessenger.of(context).clearSnackBars();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: AppColors.primaryDark,
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      content: Text('Removed $removedItemName from cart'),
+                                      duration: const Duration(seconds: 2),
                                     ),
-                                  ],
+                                  );
+                                },
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 26),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFE8C68), // Coral delete background
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    // Product Thumbnail
-                                    Container(
-                                      width: 76,
-                                      height: 76,
-                                      decoration: BoxDecoration(
-                                        color: item.product.cardBackgroundColor,
-                                        borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primaryDark.withValues(alpha: 0.04),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
                                       ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(16),
-                                        child: Image.asset(
-                                          item.product.mainImage,
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (context, error, stackTrace) => const Icon(
-                                            Icons.chair_rounded,
-                                            size: 36,
-                                            color: AppColors.primaryDark,
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // Product Thumbnail
+                                      Container(
+                                        width: 72,
+                                        height: 72,
+                                        decoration: BoxDecoration(
+                                          color: item.product.cardBackgroundColor,
+                                          borderRadius: BorderRadius.circular(18),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(18),
+                                          child: Image.asset(
+                                            item.product.mainImage,
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (context, error, stackTrace) => const Icon(
+                                              Icons.chair_rounded,
+                                              size: 36,
+                                              color: AppColors.primaryDark,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
 
-                                    const SizedBox(width: 14),
+                                      const SizedBox(width: 14),
 
-                                    // Details
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.product.name,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: AppTypography.productName.copyWith(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w700,
+                                      // Details: Product Name & Pill Price Tag
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              item.product.name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: AppTypography.productName.copyWith(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Row(
-                                            children: [
-                                              Container(
-                                                width: 8,
-                                                height: 8,
-                                                decoration: BoxDecoration(
-                                                  color: item.selectedColor.color,
-                                                  shape: BoxShape.circle,
+                                            const SizedBox(height: 8),
+                                            // Price Tag Pill Box
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.background,
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: AppColors.primaryDark.withValues(alpha: 0.06),
                                                 ),
                                               ),
-                                              const SizedBox(width: 6),
-                                              Expanded(
-                                                child: Text(
-                                                  '${item.selectedMaterial.name} • ${item.selectedColor.name}',
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: AppTypography.label.copyWith(
-                                                    fontSize: 11,
-                                                    color: AppColors.textSecondary,
-                                                  ),
+                                              child: Text(
+                                                '\$${item.unitPrice.toStringAsFixed(0)}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w800,
+                                                  fontSize: 13,
+                                                  color: AppColors.primaryDark,
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            '\$${item.unitPrice.toStringAsFixed(0)}',
-                                            style: AppTypography.price.copyWith(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w700,
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
 
-                                    // Quantity Control & Remove
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () => cart.removeItem(item.id),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.accentCoral.withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: const Icon(
-                                              Icons.delete_outline_rounded,
-                                              size: 18,
-                                              color: AppColors.accentCoral,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        QuantitySelector(
-                                          quantity: item.quantity,
-                                          onQuantityChanged: (qty) => cart.updateQuantity(item.id, qty),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                      // Quantity Stepper (+ [1] -)
+                                      _buildItemStepper(item, cart),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
