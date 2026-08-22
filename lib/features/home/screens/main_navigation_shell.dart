@@ -21,6 +21,7 @@ class MainNavigationShell extends StatefulWidget {
 
 class _MainNavigationShellState extends State<MainNavigationShell> with SingleTickerProviderStateMixin {
   late int _currentIndex;
+  late final PageController _pageController;
   late AnimationController _navAnimationController;
   late Animation<Offset> _navSlideAnimation;
   late Animation<double> _navFadeAnimation;
@@ -29,27 +30,28 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
 
     _navAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1000),
     );
 
-    // Floating Nav slides up from below (0.55 -> 1.0)
+    // Floating Nav slides up from below (0.45 -> 0.95)
     _navSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1.6),
+      begin: const Offset(0, 1.4),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _navAnimationController,
-        curve: const Interval(0.55, 1.0, curve: Curves.easeOutBack),
+        curve: const Interval(0.45, 0.95, curve: Curves.easeOutBack),
       ),
     );
 
     _navFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _navAnimationController,
-        curve: const Interval(0.55, 0.90, curve: Curves.easeOut),
+        curve: const Interval(0.45, 0.85, curve: Curves.easeOut),
       ),
     );
 
@@ -59,13 +61,23 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
   @override
   void dispose() {
     _navAnimationController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
   void _onTabSelected(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    if (_currentIndex != index) {
+      setState(() {
+        _currentIndex = index;
+      });
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
   }
 
   @override
@@ -82,13 +94,19 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Current Tab Screen
-          IndexedStack(
-            index: _currentIndex,
+          // PageView for smooth horizontal fluid screen transitions
+          PageView(
+            controller: _pageController,
+            physics: const BouncingScrollPhysics(),
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
             children: screens,
           ),
 
-          // Animated Floating Bottom Navigation Bar
+          // Animated Floating Bottom Navigation Bar with Hold & Move Scrubbing
           Positioned(
             left: 0,
             right: 0,

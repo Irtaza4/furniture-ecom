@@ -195,19 +195,23 @@ class _CartScreenState extends State<CartScreen> {
                                     Row(
                                       children: [
                                         Container(
-                                          width: 10,
-                                          height: 10,
+                                          width: 8,
+                                          height: 8,
                                           decoration: BoxDecoration(
                                             color: item.selectedColor.color,
                                             shape: BoxShape.circle,
                                           ),
                                         ),
                                         const SizedBox(width: 6),
-                                        Text(
-                                          '${item.selectedMaterial.name} • ${item.selectedColor.name}',
-                                          style: AppTypography.label.copyWith(
-                                            fontSize: 11,
-                                            color: AppColors.textSecondary,
+                                        Expanded(
+                                          child: Text(
+                                            '${item.selectedMaterial.name} • ${item.selectedColor.name}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: AppTypography.label.copyWith(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary,
+                                            ),
                                           ),
                                         ),
                                       ],
