@@ -82,8 +82,8 @@ class FurnitureDataService {
           'Sculptural curved armchair designed for deep ergonomic comfort. Crafted with premium heather woven fabric, high-resilience foam core, and tapered solid oak legs with protective floor glides.',
       images: [
         'assets/images/armchair_grey.png',
-        'assets/images/leather_swivel_chair.png',
-        'assets/images/nordic_stool.png',
+        'assets/images/armchair_grey_side.png',
+        'assets/images/armchair_grey_angle.png',
       ],
       colors: [colorGrey, colorCharcoal, colorCyan, colorPink],
       materials: [materialBoucle, materialLeather, materialOak],
@@ -104,8 +104,8 @@ class FurnitureDataService {
           'Iconic butterfly-wing silhouette crafted with supple saddle leather and refined matte black steel legs. Engineered with 360-degree silent swivel mechanism for versatile dining and studio environments.',
       images: [
         'assets/images/leather_swivel_chair.png',
-        'assets/images/armchair_grey.png',
-        'assets/images/velvet_sofa.png',
+        'assets/images/leather_swivel_chair_side.png',
+        'assets/images/leather_swivel_chair_angle.png',
       ],
       colors: [colorPink, colorCyan, colorMustard, colorCharcoal],
       materials: [materialLeather, materialBoucle, materialOak],
@@ -126,7 +126,7 @@ class FurnitureDataService {
           'Minimalist Japanese-Nordic tripod accent table. Solid natural white ash wood with beveled bullnose edges, smooth satin natural lacquer finish, and quick twist-assembly legs.',
       images: [
         'assets/images/stool_table.png',
-        'assets/images/nordic_stool.png',
+        'assets/images/stool_table_angle.png',
       ],
       colors: [colorMint, colorMustard, colorCharcoal],
       materials: [materialOak, materialLeather],
@@ -146,6 +146,7 @@ class FurnitureDataService {
           'Architectural cone pendant fixture with natural terracotta ceramic exterior and spun copper warm reflective interior. Emits a soft, downward focused glow ideal for dining tables and reading nooks.',
       images: [
         'assets/images/ceiling_lamp.png',
+        'assets/images/ceiling_lamp_angle.png',
       ],
       colors: [colorMustard, colorCharcoal, colorCyan],
       materials: [materialOak, materialLeather],
@@ -165,7 +166,7 @@ class FurnitureDataService {
           'Multi-functional companion stool and nightstand. Features a plush lavender upholstered seat top resting on turned solid beech wood legs.',
       images: [
         'assets/images/nordic_stool.png',
-        'assets/images/stool_table.png',
+        'assets/images/nordic_stool_side.png',
       ],
       colors: [colorPink, colorCyan, colorGrey],
       materials: [materialBoucle, materialLeather, materialOak],
@@ -185,7 +186,7 @@ class FurnitureDataService {
           'Organic sculptural 3-seater sofa wrapped in textured ivory bouclé. Gently curved backrest creates an intimate lounging experience with feather-down filled lumbar support.',
       images: [
         'assets/images/velvet_sofa.png',
-        'assets/images/armchair_grey.png',
+        'assets/images/velvet_sofa_angle.png',
       ],
       colors: [colorGrey, colorCharcoal, colorPink],
       materials: [materialBoucle, materialLeather],
@@ -205,6 +206,7 @@ class FurnitureDataService {
           'Low-profile floating platform bed crafted from solid white oak timber. Rounded outer corners ensure shin protection while integrated slat ventilation prolongs mattress life.',
       images: [
         'assets/images/bed_frame.png',
+        'assets/images/bed_frame_side.png',
       ],
       colors: [colorMustard, colorCharcoal, colorGrey],
       materials: [materialOak, materialLeather],
@@ -224,6 +226,7 @@ class FurnitureDataService {
           'Handmade organic ceramic vases with raw matte stoneware finish and sculptural fluid contouring. Set of two complimentary shapes for dry florals or standalone display.',
       images: [
         'assets/images/vase_set.png',
+        'assets/images/vase_set_detail.png',
       ],
       colors: [colorMustard, colorPink, colorCharcoal],
       materials: [materialOak],
