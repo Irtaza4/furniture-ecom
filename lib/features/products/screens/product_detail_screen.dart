@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -26,12 +27,18 @@ class ProductDetailScreen extends StatefulWidget {
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
-class _ProductDetailScreenState extends State<ProductDetailScreen> {
+class _ProductDetailScreenState extends State<ProductDetailScreen> with SingleTickerProviderStateMixin {
   late ProductColorOption _selectedColor;
   late ProductMaterialOption _selectedMaterial;
   int _quantity = 1;
   int _currentImageIndex = 0;
   late PageController _pageController;
+
+  final GlobalKey _cartIconKey = GlobalKey();
+  final GlobalKey _carouselKey = GlobalKey();
+
+  late AnimationController _cartBounceController;
+  late Animation<double> _cartBounceScale;
 
   @override
   void initState() {
@@ -39,10 +46,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _selectedColor = widget.product.colors.first;
     _selectedMaterial = widget.product.materials.first;
     _pageController = PageController(viewportFraction: 0.74);
+
+    _cartBounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _cartBounceScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.35).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.35, end: 0.92).chain(CurveTween(curve: Curves.easeInOut)), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 0.92, end: 1.0).chain(CurveTween(curve: Curves.easeOutBack)), weight: 30),
+    ]).animate(_cartBounceController);
   }
 
   @override
   void dispose() {
+    _cartBounceController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -272,7 +290,50 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  void _handleAddToCart() {
+  void _triggerFlyToCartAnimation() {
+    final overlay = Overlay.of(context);
+    final renderBoxCart = _cartIconKey.currentContext?.findRenderObject() as RenderBox?;
+    final renderBoxCarousel = _carouselKey.currentContext?.findRenderObject() as RenderBox?;
+
+    if (renderBoxCart == null || renderBoxCarousel == null) {
+      _finalizeAddToCart();
+      return;
+    }
+
+    final cartPos = renderBoxCart.localToGlobal(Offset.zero);
+    final cartCenter = Offset(
+      cartPos.dx + (renderBoxCart.size.width / 2),
+      cartPos.dy + (renderBoxCart.size.height / 2),
+    );
+
+    final carouselPos = renderBoxCarousel.localToGlobal(Offset.zero);
+    final carouselCenter = Offset(
+      carouselPos.dx + (renderBoxCarousel.size.width / 2),
+      carouselPos.dy + (renderBoxCarousel.size.height / 2) - 20,
+    );
+
+    final imageAsset = _getImageForColorAndAngle(_currentImageIndex);
+
+    late OverlayEntry overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) => _FlyToCartOverlay(
+        startPos: carouselCenter,
+        targetPos: cartCenter,
+        imageAsset: imageAsset,
+        onComplete: () {
+          overlayEntry.remove();
+          _finalizeAddToCart();
+        },
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+  }
+
+  void _finalizeAddToCart() {
+    HapticFeedback.mediumImpact();
+    _cartBounceController.forward(from: 0.0);
+
     final cart = Provider.of<CartProvider>(context, listen: false);
     cart.addItem(
       product: widget.product,
@@ -314,6 +375,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  void _handleAddToCart() {
+    _triggerFlyToCartAnimation();
   }
 
   @override
@@ -373,13 +438,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       return AnimatedScale(
                         duration: const Duration(milliseconds: 150),
                         scale: isHovered ? 1.25 : 1.0,
-                        child: IconButtonCustom(
-                          icon: Icons.shopping_bag_outlined,
-                          variant: isHovered ? CustomIconVariant.mint : CustomIconVariant.whiteSurface,
-                          badge: cartCount > 0 ? '$cartCount' : null,
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
+                        child: ScaleTransition(
+                          scale: _cartBounceScale,
+                          child: Container(
+                            key: _cartIconKey,
+                            child: IconButtonCustom(
+                              icon: Icons.shopping_bag_outlined,
+                              variant: isHovered ? CustomIconVariant.mint : CustomIconVariant.whiteSurface,
+                              badge: cartCount > 0 ? '$cartCount' : null,
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ),
                         ),
                       );
                     },
@@ -398,6 +469,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                     // Multi-Card Peek Animated Carousel (viewportFraction: 0.74)
                     SizedBox(
+                      key: _carouselKey,
                       height: 350,
                       child: AnimatedBuilder(
                         animation: _pageController,
@@ -655,6 +727,101 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FlyToCartOverlay extends StatefulWidget {
+  final Offset startPos;
+  final Offset targetPos;
+  final String imageAsset;
+  final VoidCallback onComplete;
+
+  const _FlyToCartOverlay({
+    required this.startPos,
+    required this.targetPos,
+    required this.imageAsset,
+    required this.onComplete,
+  });
+
+  @override
+  State<_FlyToCartOverlay> createState() => _FlyToCartOverlayState();
+}
+
+class _FlyToCartOverlayState extends State<_FlyToCartOverlay> with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _progress;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _progress = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeInOutCubic,
+    );
+
+    _animController.forward().then((_) {
+      widget.onComplete();
+    });
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _progress,
+      builder: (context, child) {
+        final t = _progress.value;
+
+        // Quadratic Bezier arc toss towards the top right cart icon
+        final startX = widget.startPos.dx;
+        final startY = widget.startPos.dy;
+        final endX = widget.targetPos.dx;
+        final endY = widget.targetPos.dy;
+
+        final controlX = (startX + endX) / 2.0;
+        final controlY = min(startY, endY) - 60.0;
+
+        final currentX = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * controlX + t * t * endX;
+        final currentY = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * controlY + t * t * endY;
+
+        final scale = (1.0 - (t * 0.78)); // scale down from 1.0 to 0.22
+        final opacity = (1.0 - (t * 0.25)).clamp(0.0, 1.0);
+        final rotation = -0.30 * sin(t * pi);
+
+        return Positioned(
+          left: currentX - 80,
+          top: currentY - 80,
+          child: IgnorePointer(
+            child: Opacity(
+              opacity: opacity,
+              child: Transform.scale(
+                scale: scale,
+                child: Transform.rotate(
+                  angle: rotation,
+                  child: SizedBox(
+                    width: 160,
+                    height: 160,
+                    child: Image.asset(
+                      widget.imageAsset,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
