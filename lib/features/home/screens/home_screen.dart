@@ -113,13 +113,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     );
 
-    // Trigger after frame is mounted and page transition completes
+    // Trigger immediately when mounted for fluid continuous motion
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 200), () {
-        if (mounted) {
-          _entranceController.forward(from: 0.0);
-        }
-      });
+      if (mounted) {
+        _entranceController.forward(from: 0.0);
+      }
     });
   }
 
