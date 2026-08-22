@@ -10,12 +10,14 @@ class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback onTap;
   final double? height;
+  final String? heroTag;
 
   const ProductCard({
     super.key,
     required this.product,
     required this.onTap,
     this.height,
+    this.heroTag,
   });
 
   @override
@@ -42,6 +44,26 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Widget _buildImage() {
+    final imageWidget = Image.asset(
+      widget.product.mainImage,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => const Icon(
+        Icons.chair_rounded,
+        size: 50,
+        color: AppColors.primaryDark,
+      ),
+    );
+
+    if (widget.heroTag != null && widget.heroTag!.isNotEmpty) {
+      return Hero(
+        tag: widget.heroTag!,
+        child: imageWidget,
+      );
+    }
+    return imageWidget;
   }
 
   @override
@@ -75,18 +97,7 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
                     // Product Image
                     Expanded(
                       child: Center(
-                        child: Hero(
-                          tag: 'product_card_img_${widget.product.id}',
-                          child: Image.asset(
-                            widget.product.mainImage,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.chair_rounded,
-                              size: 50,
-                              color: AppColors.primaryDark,
-                            ),
-                          ),
-                        ),
+                        child: _buildImage(),
                       ),
                     ),
                     const SizedBox(height: 10),
